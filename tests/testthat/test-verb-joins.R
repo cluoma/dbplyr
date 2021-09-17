@@ -129,6 +129,18 @@ test_that("join functions error on column not found for SQL sources #1928", {
   )
 })
 
+test_that("can optionally match NA values", {
+  df <- memdb_frame(x = c(1, NA))
+  expect_equal(
+    inner_join(df, df, by = "x", na_matches = "never") %>% collect(),
+    tibble(x = 1)
+  )
+  expect_equal(
+    inner_join(df, df, by = "x", na_matches = "na") %>% collect(),
+    tibble(x = c(1, NA))
+  )
+})
+
 # sql_build ---------------------------------------------------------------
 
 test_that("join verbs generate expected ops", {
@@ -158,11 +170,6 @@ test_that("join verbs generate expected ops", {
   ja <- anti_join(lf1, lf2, by = "x")
   expect_s3_class(ja$ops, "op_semi_join")
   expect_equal(ja$ops$args$anti, TRUE)
-})
-
-test_that("can optionally match NA values", {
-  lf <- lazy_frame(x = 1)
-  expect_snapshot(left_join(lf, lf, by = "x", na_matches = "na"))
 })
 
 test_that("join captures both tables", {
